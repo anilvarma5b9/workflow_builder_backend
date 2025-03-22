@@ -32,6 +32,13 @@
 $ npm install
 ```
 
+## Datbase migration 
+
+```bash
+$ npx prisma generate
+$ npx prisma migrate dev
+```
+
 ## Running the app
 
 ```bash
