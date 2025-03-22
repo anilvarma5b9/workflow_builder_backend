@@ -1,0 +1,46 @@
+/*
+  Warnings:
+
+  - The primary key for the `User` table will be changed. If it partially fails, the table could be left without primary key constraint.
+  - You are about to drop the column `id` on the `User` table. All the data in the column will be lost.
+  - The primary key for the `UserWorkflow` table will be changed. If it partially fails, the table could be left without primary key constraint.
+  - You are about to drop the column `id` on the `UserWorkflow` table. All the data in the column will be lost.
+  - You are about to drop the column `userId` on the `UserWorkflow` table. All the data in the column will be lost.
+  - Added the required column `user_id` to the `User` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `user_id` to the `UserWorkflow` table without a default value. This is not possible if the table is not empty.
+  - Added the required column `workflow_id` to the `UserWorkflow` table without a default value. This is not possible if the table is not empty.
+
+*/
+-- RedefineTables
+PRAGMA defer_foreign_keys=ON;
+PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_User" (
+    "user_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+INSERT INTO "new_User" ("createdAt", "email", "name", "password", "updatedAt") SELECT "createdAt", "email", "name", "password", "updatedAt" FROM "User";
+DROP TABLE "User";
+ALTER TABLE "new_User" RENAME TO "User";
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE TABLE "new_UserWorkflow" (
+    "workflow_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER NOT NULL,
+    "workflow_name" TEXT NOT NULL,
+    "workflow_status" TEXT NOT NULL DEFAULT 'PENDING',
+    "workflow_data" JSONB NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "UserWorkflow_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("user_id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO "new_UserWorkflow" ("createdAt", "updatedAt", "workflow_data", "workflow_name", "workflow_status") SELECT "createdAt", "updatedAt", "workflow_data", "workflow_name", "workflow_status" FROM "UserWorkflow";
+DROP TABLE "UserWorkflow";
+ALTER TABLE "new_UserWorkflow" RENAME TO "UserWorkflow";
+CREATE INDEX "UserWorkflow_user_id_idx" ON "UserWorkflow"("user_id");
+CREATE INDEX "UserWorkflow_workflow_status_idx" ON "UserWorkflow"("workflow_status");
+CREATE INDEX "UserWorkflow_workflow_name_idx" ON "UserWorkflow"("workflow_name");
+PRAGMA foreign_keys=ON;
+PRAGMA defer_foreign_keys=OFF;

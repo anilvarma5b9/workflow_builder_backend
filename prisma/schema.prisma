@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id  Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+
+  UserWorkflow UserWorkflow[]
+
+  added_date_time    DateTime @default(now())
+  modified_date_time DateTime @updatedAt
+}
+
+model UserWorkflow {
+  workflow_id          Int            @id @default(autoincrement())
+  user_id              Int
+  workflow_name        String
+  workflow_description String
+  nodes_count          Int
+  edges_count          Int
+  workflow_status      WorkflowStatus @default(Pending)
+  workflow_data        Json
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  added_date_time    DateTime @default(now())
+  modified_date_time DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([workflow_status])
+  @@index([workflow_name])
+}
+
+enum WorkflowStatus {
+  Pending
+  Inprogress
+  Completed
+  Inactive
+}
